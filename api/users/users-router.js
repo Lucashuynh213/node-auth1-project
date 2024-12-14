@@ -1,5 +1,9 @@
 // Require the `restricted` middleware from `auth-middleware.js`. You will need it here!
+const express = require("express");
+const { restricted } = require("../auth/auth-middleware"); // Import the restricted middleware
+const usersModel = require("./users-model");
 
+const router = express.Router();
 
 /**
   [GET] /api/users
@@ -23,6 +27,19 @@
     "message": "You shall not pass!"
   }
  */
+/**
+  [GET] /api/users
+  This endpoint is RESTRICTED: only authenticated clients should have access.
+*/
+router.get("/", restricted, async (req, res, next) => {
+  try {
+    const users = await usersModel.find();
+    res.status(200).json(users);
+  } catch (err) {
+    next(err);
+  }
+});
 
+module.exports = router;
 
 // Don't forget to add the router to the `exports` object so it can be required in other modules
