@@ -40,24 +40,16 @@ router.post("/register", checkUsernameFree, checkPasswordLength, async (req, res
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log("Hashed password:", hashedPassword);  // Debugging step
 
-    const [user] = await db("users")
-      .insert({ username, password: hashedPassword })
-      .returning(["user_id", "username"]);
+    const [id] = await db("users").insert({ username, password: hashedPassword });
+    const user = await db("users").where("user_id", id).first();
 
-    if (user) {
-      console.log("User inserted:", user);  // Debugging step
-      const insertedUser = await db('users').where({ user_id: user.user_id }).first();
-      res.status(200).json({
-        user_id: insertedUser.user_id,
-        username: insertedUser.username,
-      });
-    } else {
-      res.status(500).json({ message: "Failed to register user" });
-    }
+    res.status(200).json({
+      user_id: user.user_id,
+      username: user.username,
+    });
   } catch (err) {
-    console.error("Registration error:", err);  // Log the error for debugging
+    console.error("Registration error:", err);
     next(err);
   }
 });
